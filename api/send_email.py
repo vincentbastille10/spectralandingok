@@ -3,6 +3,13 @@ from fastapi.responses import JSONResponse
 import os
 import requests
 
+app = FastAPI()  # <== IMPORTANT : créer l'instance FastAPI ici
+
+MAILJET_API_KEY = os.environ.get("MAILJET_API_KEY")
+MAILJET_API_SECRET = os.environ.get("MAILJET_API_SECRET")
+MAILJET_SENDER = os.environ.get("MAILJET_SENDER")
+MAILJET_RECEIVER = os.environ.get("MAILJET_RECEIVER")
+
 @app.post("/")
 async def send_email(request: Request):
     try:
