@@ -3,13 +3,6 @@ from fastapi.responses import JSONResponse
 import os
 import requests
 
-app = FastAPI()
-
-MAILJET_API_KEY = os.environ.get("MAILJET_API_KEY")
-MAILJET_API_SECRET = os.environ.get("MAILJET_API_SECRET")
-MAILJET_SENDER = os.environ.get("MAILJET_SENDER")
-MAILJET_RECEIVER = os.environ.get("MAILJET_RECEIVER")
-
 @app.post("/")
 async def send_email(request: Request):
     try:
@@ -46,7 +39,11 @@ async def send_email(request: Request):
         if resp.status_code == 200:
             return {"message": "Email envoyé via Mailjet"}
         else:
-            return JSONResponse(status_code=500, content={"error": f"Mailjet error: {resp.text}"})
+            # Retourne le code et le texte complet pour debug
+            return JSONResponse(
+                status_code=resp.status_code,
+                content={"error": f"Mailjet error: {resp.text}"}
+            )
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
