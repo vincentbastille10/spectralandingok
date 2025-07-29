@@ -1,12 +1,16 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-import smtplib
-from email.message import EmailMessage
 import os
+import requests
 
 app = FastAPI()
 
-@app.post("/api/send_email")
+MAILJET_API_KEY = os.environ.get("MAILJET_API_KEY")
+MAILJET_API_SECRET = os.environ.get("MAILJET_API_SECRET")
+MAILJET_SENDER = os.environ.get("MAILJET_SENDER")
+MAILJET_RECEIVER = os.environ.get("MAILJET_RECEIVER")
+
+@app.post("/")
 async def send_email(request: Request):
     try:
         data = await request.json()
@@ -14,18 +18,35 @@ async def send_email(request: Request):
         if not user_email:
             return JSONResponse(status_code=400, content={"error": "Email manquant"})
 
-        msg = EmailMessage()
-        msg["Subject"] = "🎯 Nouveau contact landing page"
-        msg["From"] = os.environ["EMAIL_FROM"]
-        msg["To"] = os.environ["EMAIL_TO"]
-        msg.set_content(f"Nouvel email curieux : {user_email}")
+        mail_data = {
+            "Messages": [
+                {
+                    "From": {
+                        "Email": MAILJET_SENDER,
+                        "Name": "Spectra Media"
+                    },
+                    "To": [
+                        {
+                            "Email": MAILJET_RECEIVER,
+                            "Name": "Vincent"
+                        }
+                    ],
+                    "Subject": "🎯 Nouveau contact landing page",
+                    "TextPart": f"Nouvel email curieux : {user_email}"
+                }
+            ]
+        }
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-            smtp.starttls()
-            smtp.login(os.environ["EMAIL_FROM"], os.environ["EMAIL_PASS"])
-            smtp.send_message(msg)
+        resp = requests.post(
+            "https://api.mailjet.com/v3.1/send",
+            auth=(MAILJET_API_KEY, MAILJET_API_SECRET),
+            json=mail_data
+        )
 
-        return {"message": "Email envoyé"}
+        if resp.status_code == 200:
+            return {"message": "Email envoyé via Mailjet"}
+        else:
+            return JSONResponse(status_code=500, content={"error": f"Mailjet error: {resp.text}"})
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

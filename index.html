@@ -1,39 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gagnez du temps avec notre outil intelligent</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background: #f9f9f9;
-    }
-    h1 {
-      color: #333;
-    }
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 1rem;
-    }
-    #message {
-      margin-top: 15px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>⏱️ Un outil pour gagner du temps, tout simplement</h1>
-  <p>Entrez votre email pour recevoir une démonstration personnalisée :</p>
-  <input type="email" id="email" placeholder="Votre email" required />
-  <button onclick="sendEmail()">Envoyer</button>
-  <p id="message"></p>
+  <div class="container">
+    <h1>⏱️ Un outil pour gagner du temps, tout simplement</h1>
+    <p>Entrez votre email pour recevoir une démonstration personnalisée :</p>
+    <input type="email" id="email" placeholder="Votre email" required />
+    <button onclick="sendEmail()">Envoyer</button>
+    <p id="message"></p>
+    <img src="illustration.png" alt="Illustration gain de temps" style="max-width:100%; margin-top:20px;" />
+  </div>
 
   <script>
     async function sendEmail() {
@@ -41,20 +22,24 @@
       const message = document.getElementById('message');
       if (!email) {
         message.textContent = "Veuillez entrer un email.";
+        message.style.color = "red";
         return;
       }
 
       const res = await fetch('/api/send_email', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
 
-      const data = await res.json();
       if (res.ok) {
-        message.textContent = "Merci ! Nous vous contacterons très vite.";
+        message.textContent = "✅ Votre message a bien été envoyé, nous répondrons bientôt.";
+        message.style.color = "green";
+        document.getElementById('email').value = '';
       } else {
-        message.textContent = "Erreur. Veuillez réessayer.";
+        const data = await res.json();
+        message.textContent = "Erreur: " + (data.error || "Veuillez réessayer.");
+        message.style.color = "red";
       }
     }
   </script>
