@@ -6,7 +6,7 @@ import os
 
 app = FastAPI()
 
-@app.post("/")
+@app.post("/api/send_email")
 async def send_email(request: Request):
     try:
         data = await request.json()
