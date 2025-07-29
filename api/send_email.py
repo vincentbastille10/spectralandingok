@@ -1,25 +1,24 @@
-# api/send_email.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import os, requests
 
-app = FastAPI()                    # ← crée l’instance FastAPI
+app = FastAPI()
 
 MAILJET_API_KEY    = os.environ["MAILJET_API_KEY"]
 MAILJET_API_SECRET = os.environ["MAILJET_API_SECRET"]
 MAILJET_SENDER     = os.environ["MAILJET_SENDER"]      # vinylestorefrance@gmail.com
 MAILJET_RECEIVER   = os.environ["MAILJET_RECEIVER"]    # vinylestorefrance@gmail.com
 
-@app.post("/api/send_email")       # même chemin que l’appel JS
+@app.post("/api/send_email")
 async def send_email(req: Request):
-    data = await req.json()
+    data  = await req.json()
     email = data.get("email")
     if not email:
         return JSONResponse(status_code=400, content={"error": "Email manquant"})
 
     payload = {
         "Messages": [{
-            "From": {"Email": MAILJET_SENDER, "Name": "Spectra Media"},
+            "From": {"Email": MAILJET_SENDER, "Name": "Spectra Media"},
             "To":   [{"Email": MAILJET_RECEIVER, "Name": "Vincent"}],
             "Subject": "🎯 Nouveau contact landing page",
             "TextPart": f"Nouvel email curieux : {email}"
