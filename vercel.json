@@ -11,5 +11,10 @@
     { "src": "/style.css",        "dest": "/style.css" },
     { "src": "/illustration.png", "dest": "/illustration.png" },
     { "src": "/(.*)",             "dest": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/send_email.py": {
+      "runtime": "python3.9"
+    }
+  }
 }
