@@ -17,29 +17,45 @@
   </div>
 
   <script>
+    /**
+     * Soumet l'email saisi à l'API backend et affiche un message
+     * en fonction du résultat.  Toutes les erreurs renvoyées par
+     * l'API sont affichées à l'utilisateur.
+     */
     async function sendEmail() {
-      const email = document.getElementById('email').value;
-      const message = document.getElementById('message');
+      const emailInput = document.getElementById('email');
+      const message     = document.getElementById('message');
+      const email       = emailInput.value.trim();
       if (!email) {
         message.textContent = "Veuillez entrer un email.";
         message.style.color = "red";
         return;
       }
 
-      const res = await fetch('/api/send_email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-
-      if (res.ok) {
-        message.textContent = "✅ Votre message a bien été envoyé, nous répondrons bientôt.";
-        message.style.color = "green";
-        document.getElementById('email').value = '';
-      } else {
-        const data = await res.json();
-        message.textContent = "Erreur: " + (data.error || "Veuillez réessayer.");
-        message.style.color = "red";
+      try {
+        const res = await fetch('/api/send_email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        if (res.ok) {
+          message.textContent = "✅ Votre message a bien été envoyé, nous vous répondrons bientôt.";
+          message.style.color = "#4ade80";
+          emailInput.value = '';
+        } else {
+          let data;
+          try {
+            data = await res.json();
+          } catch (err) {
+            data = {};
+          }
+          const detail = data.detail || data.error || res.statusText || 'Veuillez réessayer.';
+          message.textContent = `Erreur : ${detail}`;
+          message.style.color = "#f87171";
+        }
+      } catch (err) {
+        message.textContent = `Erreur : ${err.message || err}`;
+        message.style.color = "#f87171";
       }
     }
   </script>
