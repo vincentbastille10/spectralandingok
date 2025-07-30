@@ -1,33 +1,49 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import requests
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 
-GMAIL_USER = os.getenv("GMAIL_USER")
-GMAIL_PASS = os.getenv("GMAIL_PASS")
-RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL", "spectramediabots@gmail.com")
+app = FastAPI()
 
-def handler(request, response):
+MAILJET_API_KEY = os.getenv("MAILJET_API_KEY")
+MAILJET_API_SECRET = os.getenv("MAILJET_API_SECRET")
+MAILJET_SENDER = os.getenv("MAILJET_SENDER")
+MAILJET_RECEIVER = os.getenv("MAILJET_RECEIVER")
+
+@app.post("/api/send_email")
+async def send_email(req: Request) -> JSONResponse:
+    data = await req.json()
+    email = data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email manquant")
+
+    if not all([MAILJET_API_KEY, MAILJET_API_SECRET, MAILJET_SENDER, MAILJET_RECEIVER]):
+        raise HTTPException(
+            status_code=500,
+            detail="Configuration Mailjet manquante: veuillez définir MAILJET_API_KEY, MAILJET_API_SECRET, MAILJET_SENDER et MAILJET_RECEIVER."
+        )
+
+    payload = {
+        "Messages": [
+            {
+                "From": {"Email": MAILJET_SENDER, "Name": "Spectra Media"},
+                "To": [{"Email": MAILJET_RECEIVER, "Name": "Vincent"}],
+                "Subject": "🎯 Nouveau contact landing page",
+                "TextPart": f"Nouvel email curieux : {email}",
+            }
+        ]
+    }
+
     try:
-        body = request.get_json()
-        user_email = body.get('email')
-        if not user_email:
-            response.status_code = 400
-            return response.json({ "error": "Email manquant" })
+        response = requests.post(
+            "https://api.mailjet.com/v3.1/send",
+            auth=(MAILJET_API_KEY, MAILJET_API_SECRET),
+            json=payload,
+            timeout=10,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Erreur Mailjet : {exc}")
 
-        msg = EmailMessage()
-        msg['Subject'] = '🎯 Nouveau contact landing page'
-        msg['From'] = GMAIL_USER
-        msg['To'] = RECEIVER_EMAIL
-        msg.set_content(f"Nouvel email curieux : {user_email}")
-
-        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-            smtp.starttls()
-            smtp.login(GMAIL_USER, GMAIL_PASS)
-            smtp.send_message(msg)
-
-        response.status_code = 200
-        return response.json({ "message": "Email envoyé" })
-
-    except Exception as e:
-        response.status_code = 500
-        return response.json({ "error": str(e) })
+    if response.status_code == 200:
+        return JSONResponse(content={"message": "Email envoyé via Mailjet"})
+    raise HTTPException(status_code=500, detail=f"Mailjet : {response.text}")

@@ -17,11 +17,6 @@
   </div>
 
   <script>
-    /**
-     * Soumet l'email saisi à l'API backend et affiche un message
-     * en fonction du résultat.  Toutes les erreurs renvoyées par
-     * l'API sont affichées à l'utilisateur.
-     */
     async function sendEmail() {
       const emailInput = document.getElementById('email');
       const message     = document.getElementById('message');
@@ -50,11 +45,11 @@
             data = {};
           }
           const detail = data.detail || data.error || res.statusText || 'Veuillez réessayer.';
-          message.textContent = `Erreur : ${detail}`;
+          message.textContent = `Erreur : ${detail}`;
           message.style.color = "#f87171";
         }
       } catch (err) {
-        message.textContent = `Erreur : ${err.message || err}`;
+        message.textContent = `Erreur : ${err.message || err}`;
         message.style.color = "#f87171";
       }
     }
